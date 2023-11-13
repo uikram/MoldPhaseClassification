@@ -1,69 +1,82 @@
 import os
 import pandas as pd
-import numpy as np
-import plotly.graph_objects as go
-from plotly.subplots import make_subplots
+import shutil
 
-def filter(dataframe):
-    # Define the columns you want to keep
-    selected_columns = ['HOUR', 'TAV', 'SHOT_COUNT', 'CT', 'PHASE','MOLD_ID']
-    
-    # Filter the DataFrame to keep only the selected columns
-    filtered_df = dataframe[selected_columns]
-    
-    return filtered_df
+# Function to categorize phase
+def categorize_phase(phase):
+    if phase < 0.25:
+        return 1
+    elif 0.25 <= phase < 0.50:
+        return 2
+    elif 0.50 <= phase < 0.75:
+        return 3
+    elif 0.75 <= phase:
+        return 4
 
-# Function to convert selected columns to numpy arrays
-def features(dataframe):
-    # Extract TAV, SHOT_COUNT, and PHASE as numpy arrays
-    tav_array = dataframe['TAV'].to_numpy()
-    shot_count_array = dataframe['SHOT_COUNT'].to_numpy()
-    ct_array = dataframe['CT'].to_numpy()
+def label_data(input_directory):
+    output_directory = 'Processed/Labelled_Data'
     
-    return tav_array, shot_count_array, ct_array
+    # Create the output directory if it doesn't exist
+    if not os.path.exists(output_directory):
+        os.makedirs(output_directory)
+    
+    # Traverse subfolders in 'Raw_Data'
+    for root, dirs, files in os.walk(input_directory):
+        for file in files:
+            if file.endswith("_statistics.csv"):
+                # Construct the full path to the CSV file
+                file_path = os.path.join(root, file)
+                
+                # Load the CSV file into a DataFrame
+                df = pd.read_csv(file_path)
+                
+                # Check if DataFrame is empty or only contains the specified columns
+                if df.empty or set(df.columns) == {'TFF', 'CT', 'TAV', 'SHOT_COUNT'}:
+                    print(f'File {file} is empty')
+                    continue
+                
+                # Apply your transformations
+                df = df[df['TFF'] > 20180000000000]
+                df = df[(df['CT'] != 9999) & (df['CT'] != 999.9)]
+                df['LIFE_CYCLE'] = df['SC'] / df['max_shots']
+                df['PHASE'] = df['LIFE_CYCLE'].apply(categorize_phase)
+                df['TFF'] = df['TFF'].astype(str)
+                df['HOUR'] = df['TFF'].str[:10]
+                df['HOUR'] = pd.to_datetime(df['HOUR'], format='%Y%m%d%H')
+                df = df.sort_values('HOUR')
+                df = df[['HOUR','MOLD_ID', 'CT', 'TAV', 'SHOT_COUNT', 'PHASE']]
+                df.fillna(0, inplace=True)
+                
+                # Save the modified DataFrame with the original file name in 'Labelled_Data'
+                output_file_path = os.path.join(output_directory, file)
+                df.to_csv(output_file_path, index=False)
+                
+                print(f"Processed: {file_path}")
 
 
-# def plots(df, output_folder='Plots'):
-#     if not os.path.exists(output_folder):
-#         os.makedirs(output_folder)
-    
-#     tav_array, shot_count_array, ct_array = features(df)
-#     mold_id = df['MOLD ID'].unique
-    
-#     # Create subplots
-#     fig = make_subplots(rows=3, cols=1, shared_xaxes=True, subplot_titles=['TAV', 'SHOT_COUNT', 'CT'])
-    
-#     # Add traces to subplots
-#     for i in range(len(tav_array)):
-#         fig.add_trace(go.Scatter(x=df['HOUR'], y=tav_array[i], mode='lines', name=f'TAV ({mold_id[i]})'), row=1, col=1)
-#         fig.add_trace(go.Scatter(x=df['HOUR'], y=shot_count_array[i], mode='lines', name=f'SHOT_COUNT ({mold_id[i]})'), row=2, col=1)
-#         fig.add_trace(go.Scatter(x=df['HOUR'], y=ct_array[i], mode='lines', name=f'CT ({mold_id[i]})'), row=3, col=1)
-    
-#     # Update subplot layout
-#     fig.update_layout(title='Time Series Plots', showlegend=True)
-    
-#     # Save the plot
-#     plot_file = os.path.join(output_folder, 'time_series_plots.html')
-#     fig.write_html(plot_file)
-def plots(df, output_folder='Plots'):
-    mold_id = df['MOLD_ID'].unique
+#Extracts Data that contains phases from 1 to 4
+def all_phase(input_folder):
+    # Set the path to the folder where you want to copy the selected CSV files
+    output_folder = 'Processed/Labelled_Data_Complete_Phase(1-4)/'
+        # Create the output directory if it doesn't exist
     if not os.path.exists(output_folder):
         os.makedirs(output_folder)
+    # create an empty list to store the filenames
+    files_with_all_phases = []
 
-    tav_array, shot_count_array, ct_array = features(df)
+    # iterate over all files in the source directory
+    for filename in os.listdir(input_folder):
+        if filename.endswith('.csv'):  # check if the file is a CSV
+            file_path = os.path.join(input_folder, filename)
+            df = pd.read_csv(file_path)  # read the CSV file into a DataFrame
 
-    # Create subplots
-    fig = make_subplots(rows=3, cols=1, shared_xaxes=True, subplot_titles=['TAV', 'SHOT_COUNT', 'CT'])
-    
-    # Add traces to subplots
-    for i in range(len(tav_array)):
-        fig.add_trace(go.Scatter(x=df['HOUR'], y=tav_array[i], mode='lines', name=f'TAV ({mold_id[i]})'), row=1, col=1)
-        fig.add_trace(go.Scatter(x=df['HOUR'], y=shot_count_array[i], mode='lines', name=f'SHOT_COUNT ({mold_id[i]})'), row=2, col=1)
-        fig.add_trace(go.Scatter(x=df['HOUR'], y=ct_array[i], mode='lines', name=f'CT ({mold_id[i]})'), row=3, col=1)
-    
-    # Update subplot layout
-    fig.update_layout(title='Time Series Plots', showlegend=True)
-    
-    # Save the plot
-    plot_file = os.path.join(output_folder, 'time_series_plots.html')
-    fig.write_html(plot_file)
+            # check if 'PHASE' column exists and its unique values contain 1, 2, 3, and 4
+            if 'PHASE' in df.columns and set([1, 2, 3, 4]).issubset(df['PHASE'].unique()):
+                files_with_all_phases.append(filename)
+                # copy the file to the destination directory
+                shutil.copy(file_path, output_folder)
+
+    # print out the filenames
+    print("The following files contain all four phases:")
+    for filename in files_with_all_phases:
+        print(filename)
