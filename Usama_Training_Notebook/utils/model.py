@@ -4,7 +4,7 @@ from keras.layers import TimeDistributed
 
 
 # Function to create the model
-def model(X_train,y_train,optimizer='adam'):
+def model(X_train,y_train,optimizer):
     n_timesteps, n_features, n_outputs = X_train.shape[1], X_train.shape[2], y_train.shape[2]
     model = Sequential()
     model.add(LSTM(50, return_sequences=True, input_shape=(n_timesteps,n_features)))

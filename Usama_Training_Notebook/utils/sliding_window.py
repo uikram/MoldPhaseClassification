@@ -4,7 +4,7 @@ import pandas as pd
 
 #Create a sliding window
 def sliding_window(df, window_size):
-    df['HOUR'] = pd.to_datetime(df['HOUR'], format='%Y%m%d%H')
+    df['HOUR'] = pd.to_datetime(df['HOUR'], format='%Y-%m-%d %H:%M:%S')
     df = df.sort_values('HOUR')
     # One-hot encoding the 'PHASE' feature
     y = pd.get_dummies(df['PHASE']).values
