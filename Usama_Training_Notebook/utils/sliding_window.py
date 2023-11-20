@@ -1,7 +1,6 @@
 import numpy as np
 import pandas as pd
 
-
 #Create a sliding window
 def sliding_window(df, window_size):
     df['HOUR'] = pd.to_datetime(df['HOUR'], format='%Y-%m-%d %H:%M:%S')
