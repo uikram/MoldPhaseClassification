@@ -5,14 +5,11 @@ import numpy as np
 
 # Function to categorize phase
 def categorize_phase(phase):
-    if phase < 0.25:
+    if phase < 0.50:
+        return 0
+    elif phase <= 50:
         return 1
-    elif 0.25 <= phase < 0.50:
-        return 2
-    elif 0.50 <= phase < 0.75:
-        return 3
-    elif 0.75 <= phase:
-        return 4
+
 
 def label_data(input_directory):
     output_directory = 'Processed/Labelled_Data'
@@ -69,7 +66,7 @@ def label_data(input_directory):
 
 #Extracts Data that contains phases from 1 to 4
 def all_phase_sort(input_directory):
-    output_directory = 'Processed/Labelled_Data_Complete_Phase(1-4)'
+    output_directory = 'Processed/Labelled_Data_Complete_Phase(0-1)'
     
     # Traverse subfolders in input_directory
     for root, dirs, files in os.walk(input_directory):
@@ -82,7 +79,7 @@ def all_phase_sort(input_directory):
                 df = pd.read_csv(file_path)
                 
                 # Check if 'PHASE' column exists and its unique values contain 1, 2, 3, and 4
-                if 'PHASE' in df.columns and set([1, 2, 3, 4]).issubset(df['PHASE'].unique()):
+                if 'PHASE' in df.columns and set([0, 1]).issubset(df['PHASE'].unique()):
                     # Create the same subfolder structure in output_directory
                     relative_path = os.path.relpath(root, input_directory)
                     output_subfolder = os.path.join(output_directory, relative_path)

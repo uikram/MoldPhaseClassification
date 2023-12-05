@@ -1,0 +1,38 @@
+{
+    "os": "Windows-10-10.0.22621-SP0",
+    "python": "3.6.5",
+    "heartbeatAt": "2023-12-05T11:21:19.196860",
+    "startedAt": "2023-12-05T11:21:17.550109",
+    "docker": null,
+    "cuda": null,
+    "args": [],
+    "state": "running",
+    "program": "Training.ipynb",
+    "codePathLocal": "Training.ipynb",
+    "host": "Lenovo",
+    "username": "uikra",
+    "executable": "c:\\Users\\uikra\\AppData\\Local\\Programs\\Python\\Python36\\python.exe",
+    "cpu_count": 4,
+    "cpu_count_logical": 8,
+    "cpu_freq": {
+        "current": 2419.0,
+        "min": 0.0,
+        "max": 2419.0
+    },
+    "cpu_freq_per_core": [
+        {
+            "current": 2419.0,
+            "min": 0.0,
+            "max": 2419.0
+        }
+    ],
+    "disk": {
+        "/": {
+            "total": 237.22753524780273,
+            "used": 156.7240447998047
+        }
+    },
+    "memory": {
+        "total": 11.788383483886719
+    }
+}
